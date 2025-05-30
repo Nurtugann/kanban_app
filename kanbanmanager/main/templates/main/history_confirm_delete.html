@@ -1,0 +1,17 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:600px;">
+  <h1>{{ title }}</h1>
+  <p>Вы действительно хотите удалить запись, когда статус был 
+     <strong>
+       {% if history.status %}{{ history.status.name }}{% else %}Без статуса{% endif %}
+     </strong> 
+     на {{ history.changed_at|date:"Y-m-d H:i" }}?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger">Удалить</button>
+    <a href="{% url 'main:company_detail' company.pk %}" class="btn btn-secondary ms-2">Отмена</a>
+  </form>
+</div>
+{% endblock %}

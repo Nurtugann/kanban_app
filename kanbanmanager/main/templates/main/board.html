@@ -1,0 +1,110 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="m-0">{{ title }}</h1>
+    <a href="{% url 'main:add_company' %}" class="btn btn-success">
+      <i class="bi bi-plus-lg"></i> Добавить
+    </a>
+  </div>
+
+  {# Фильтр просроченных #}
+  <div class="mb-3">
+    {% if request.GET.overdue == '1' %}
+      <a href="{% url 'main:board' %}" class="btn btn-outline-primary">Показать все</a>
+    {% else %}
+      <a href="{% url 'main:board' %}?overdue=1" class="btn btn-outline-danger">Показать просроченные</a>
+    {% endif %}
+  </div>
+
+  <!-- Колонки с карточками -->
+  <div class="overflow-auto">
+    <div class="d-flex flex-nowrap gx-3">
+      {% for status, comps in board_data %}
+        <div class="flex-shrink-0" style="width: 280px;">
+          <div class="card h-100 d-flex flex-column">
+            <div class="card-header text-center">
+              {% if status %}{{ status.name }}{% else %}Без статуса{% endif %}
+            </div>
+            <ul class="list-group list-group-flush flex-grow-1 overflow-auto status-list"
+                id="status-{{ status.id|default:'none' }}">
+              {% for company in comps %}
+                <li class="
+                      list-group-item 
+                      d-flex justify-content-between align-items-center draggable-item
+                      {% if company.is_overdue %}border-danger{% endif %}
+                    "
+                    data-id="{{ company.id }}">
+                  <a href="{% url 'main:company_detail' company.id %}"
+                     class="flex-grow-1 text-decoration-none">
+                    {{ company.name }}
+                  </a>
+                  <span class="btn-group btn-group-sm" role="group">
+                    <a href="{% url 'main:edit_company' company.id %}"
+                       class="btn btn-outline-primary" title="Редактировать">✎</a>
+                    <a href="{% url 'main:delete_company' company.id %}"
+                       class="btn btn-outline-danger" title="Удалить">🗑</a>
+                  </span>
+                </li>
+              {% empty %}
+                <li class="list-group-item text-muted">Нет компаний</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .draggable-item { cursor: grab; }
+  .sortable-ghost { opacity: 0.5; }
+  .btn-group-sm .btn { padding: .25rem .5rem; font-size: .8rem; }
+  .border-danger { border: 2px solid #dc3545 !important; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+  const csrftoken = document.querySelector('meta[name="csrf-token"]').content;
+  document.addEventListener('DOMContentLoaded', () => {
+    const moveUrl  = "{% url 'main:move_company' %}";
+    const orderUrl = "{% url 'main:reorder_companies' %}";
+
+    document.querySelectorAll('.status-list').forEach(listEl => {
+      new Sortable(listEl, {
+        group: 'companies',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: async evt => {
+          const id = evt.item.dataset.id;
+          const newStatus = evt.to.id.replace('status-','') || '';
+          await fetch(moveUrl, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({ company_id: id, status_id: newStatus })
+          });
+          const order = Array.from(evt.to.children).map(li => li.dataset.id);
+          await fetch(orderUrl, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status_id: newStatus, order })
+          });
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

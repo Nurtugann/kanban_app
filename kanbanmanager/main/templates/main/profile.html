@@ -1,0 +1,68 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:800px;">
+  <h1 class="mb-4">Личный кабинет</h1>
+
+  <div class="row">
+    <!-- Левая колонка: информация о пользователе и пароль -->
+    <div class="col-md-5">
+      <h3>Мои данные</h3>
+      <ul class="list-group mb-4">
+        <li class="list-group-item"><strong>Имя:</strong> {{ user.get_full_name|default:user.username }}</li>
+        <li class="list-group-item"><strong>E-mail:</strong> {{ user.email }}</li>
+      </ul>
+
+      <h5>Сменить пароль</h5>
+      <form method="post" class="mb-4">
+        {% csrf_token %}
+        {{ pwd_form.non_field_errors }}
+        <div class="mb-3">
+          {{ pwd_form.old_password.label_tag }}
+          {{ pwd_form.old_password }}
+          {{ pwd_form.old_password.errors }}
+        </div>
+        <div class="mb-3">
+          {{ pwd_form.new_password1.label_tag }}
+          {{ pwd_form.new_password1 }}
+          {{ pwd_form.new_password1.errors }}
+        </div>
+        <div class="mb-3">
+          {{ pwd_form.new_password2.label_tag }}
+          {{ pwd_form.new_password2 }}
+          {{ pwd_form.new_password2.errors }}
+        </div>
+        <button class="btn btn-primary">Сохранить</button>
+      </form>
+    </div>
+
+    <!-- Правая колонка: статистика компаний -->
+    <div class="col-md-7">
+      <h3>Статистика компаний</h3>
+      <ul class="list-group mb-4">
+        <li class="list-group-item d-flex justify-content-between">
+          Всего компаний
+          <span class="badge bg-primary">{{ total }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          Просроченных
+          <span class="badge bg-danger">{{ overdue }}</span>
+        </li>
+      </ul>
+
+      <h5>По статусам</h5>
+      <ul class="list-group">
+        {% for st in by_status %}
+          <li class="list-group-item d-flex justify-content-between">
+            {{ st.status__name|default:"Без статуса" }}
+            <span class="badge bg-secondary">{{ st.count }}</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">Нет компаний</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

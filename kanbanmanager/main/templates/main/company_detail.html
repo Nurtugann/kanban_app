@@ -1,0 +1,107 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:700px;">
+
+  {# ————— Заголовок и действия над компанией ————— #}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="m-0">{{ company.name }}</h1>
+    <div class="btn-group">
+      <a href="{% url 'main:edit_company' company.pk %}"
+         class="btn btn-sm btn-outline-primary">
+        Редактировать
+      </a>
+      <a href="{% url 'main:delete_company' company.pk %}"
+         class="btn btn-sm btn-outline-danger">
+        Удалить
+      </a>
+    </div>
+  </div>
+
+  <p>
+    Регион:
+    <strong>{{ company.get_region_display }}</strong>
+  </p>
+
+  <p>
+    Статус:
+    {% if company.status %}
+      <strong>{{ company.status.name }}</strong>
+    {% else %}
+      <strong>Без статуса</strong>
+    {% endif %}
+    {% if company.status and company.status.duration_days %}
+      &nbsp;(рекоменд.: {{ company.status.duration_days }} дн.)
+    {% endif %}
+    {% if days_in_status is not None %}
+      , уже {{ days_in_status }} дн.
+    {% endif %}
+  </p>
+
+  <hr>
+
+  {# ————— История статусов с кнопками ред./удал. записи ————— #}
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h4 class="mb-0">История статусов</h4>
+    <a href="{% url 'main:add_status_history' company.pk %}"
+       class="btn btn-sm btn-outline-secondary">
+      Добавить запись истории
+    </a>
+  </div>
+
+  <ul class="list-group mb-4">
+    {% for h in company.history.all %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          {{ h.changed_at|date:"Y-m-d H:i" }} →
+          {% if h.status %}
+            <strong>{{ h.status.name }}</strong>
+          {% else %}
+            <strong>Без статуса</strong>
+          {% endif %}
+        </div>
+        <div class="btn-group btn-group-sm" role="group">
+          <a href="{% url 'main:edit_status_history' h.pk %}"
+             class="btn btn-outline-primary"
+             title="Редактировать запись истории">✎</a>
+          <a href="{% url 'main:delete_status_history' h.pk %}"
+             class="btn btn-outline-danger"
+             title="Удалить запись истории">🗑</a>
+        </div>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-muted">История пуста</li>
+    {% endfor %}
+  </ul>
+
+  {# ————— Комментарии ————— #}
+  <h4>Комментарии</h4>
+  <ul class="list-group mb-3">
+    {% for com in company.comments.all %}
+      <li class="list-group-item">
+        <small class="text-muted">
+          {{ com.author.username }}, {{ com.created_at|date:"Y-m-d H:i" }}
+        </small>
+        <p class="mb-0">{{ com.text }}</p>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-muted">Нет комментариев</li>
+    {% endfor %}
+  </ul>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      {{ form.text.label_tag }}
+      {{ form.text }}
+      {{ form.text.errors }}
+    </div>
+    <button class="btn btn-primary">Добавить комментарий</button>
+  </form>
+
+  <hr>
+
+  <a href="{% url 'main:index' %}" class="btn btn-secondary">← Назад в список</a>
+</div>
+{% endblock %}

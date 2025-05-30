@@ -1,0 +1,30 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 380px;">
+  <h1 class="h3 mb-4 text-center">Пожалуйста, войдите</h1>
+  <form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="id_username" class="form-label">Имя пользователя</label>
+      <input type="text" name="username" autofocus required
+             class="form-control" id="id_username">
+    </div>
+    <div class="mb-3">
+      <label for="id_password" class="form-label">Пароль</label>
+      <input type="password" name="password" required
+             class="form-control" id="id_password">
+    </div>
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        Неверное имя пользователя или пароль.
+      </div>
+    {% endif %}
+    <button class="w-100 btn btn-lg btn-primary" type="submit">
+      Войти
+    </button>
+  </form>
+</div>
+{% endblock %}

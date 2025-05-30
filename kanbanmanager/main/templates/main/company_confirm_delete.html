@@ -1,0 +1,17 @@
+{% extends 'main/base.html' %}
+{% block title %}Удалить компанию{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:600px;">
+  <h1 class="mb-4">Удалить компанию</h1>
+  <p class="lead">
+    Вы действительно хотите удалить компанию
+    <strong>{{ company.name }}</strong>?
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Да, удалить</button>
+    <a href="{% url 'main:index' %}" class="btn btn-secondary">Отмена</a>
+  </form>
+</div>
+{% endblock %}
